@@ -1,0 +1,42 @@
+CLASS zcl_app_dialog DEFINITION
+  INHERITING FROM zca_app
+  PUBLIC
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    METHODS:
+      on_pai REDEFINITION,
+      on_pbo REDEFINITION,
+      on_init REDEFINITION,
+      pai REDEFINITION,
+      pbo REDEFINITION.
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+
+ENDCLASS.
+
+
+
+CLASS zcl_app_dialog IMPLEMENTATION.
+  METHOD on_pai.
+
+  ENDMETHOD.
+
+  METHOD on_pbo.
+
+  ENDMETHOD.
+
+  METHOD on_init.
+
+  ENDMETHOD.
+
+  METHOD pai.
+
+  ENDMETHOD.
+
+  METHOD pbo.
+
+  ENDMETHOD.
+ENDCLASS.

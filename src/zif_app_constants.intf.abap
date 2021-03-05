@@ -1,0 +1,4 @@
+INTERFACE zif_app_constants
+  PUBLIC.
+
+ENDINTERFACE.
