@@ -38,6 +38,48 @@
      <MSGNR>004</MSGNR>
      <TEXT>App Customizing: ABAP class &amp;1 does not exist</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>005</MSGNR>
+     <TEXT>Output must be of type internal table</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>006</MSGNR>
+     <TEXT>Could not create selection screen controller</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>007</MSGNR>
+     <TEXT>Selection screen must be of type structure</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>008</MSGNR>
+     <TEXT>Field &amp;1 is not in selection screen structure</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>009</MSGNR>
+     <TEXT>Field &amp;1 of selection screen structure must be a elementary type</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>010</MSGNR>
+     <TEXT>Field &amp;1 of selection screen structure must be a table type (range)</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>011</MSGNR>
+     <TEXT>Container &amp;1 does not exist</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>

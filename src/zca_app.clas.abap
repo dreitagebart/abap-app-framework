@@ -14,6 +14,7 @@ CLASS zca_app DEFINITION
              program_name  TYPE zapp_cust-program_name,
            END OF ts_customizing,
 
+           tt_container    TYPE TABLE OF REF TO zca_app_container,
            tt_dynpro_stack TYPE TABLE OF REF TO zcl_app_dynpro.
 
     CLASS-METHODS:
@@ -21,6 +22,14 @@ CLASS zca_app DEFINITION
         RETURNING VALUE(ro_result) TYPE REF TO zca_app.
 
     METHODS:
+      add_container
+        IMPORTING
+          io_container TYPE REF TO zca_app_container,
+      get_container
+        IMPORTING
+                  iv_name          TYPE string
+        RETURNING VALUE(ro_result) TYPE REF TO zca_app_container
+        RAISING   zcx_app,
       get_message_class
         RETURNING VALUE(rv_result) TYPE ts_customizing-message_class,
       get_program_name
@@ -42,11 +51,13 @@ CLASS zca_app DEFINITION
       on_init ABSTRACT
         IMPORTING
           iv_screen TYPE sydynnr,
+      init ABSTRACT,
       pai ABSTRACT,
       pbo ABSTRACT.
 
   PROTECTED SECTION.
-    DATA: mt_dynpro_stack TYPE tt_dynpro_stack.
+    DATA: mt_dynpro_stack TYPE tt_dynpro_stack,
+          mt_container    TYPE tt_container.
 
   PRIVATE SECTION.
 
@@ -56,8 +67,7 @@ CLASS zca_app DEFINITION
       create_app
         RAISING zcx_app,
       check_customizing
-        IMPORTING
-                  is_customizing TYPE ts_customizing
+        RETURNING VALUE(rs_result) TYPE ts_customizing
         RAISING   zcx_app.
 
     DATA: ms_customizing  TYPE ts_customizing.
@@ -73,26 +83,36 @@ ENDCLASS.
 
 CLASS zca_app IMPLEMENTATION.
   METHOD check_customizing.
-    IF is_customizing-message_class IS INITIAL.
+    SELECT SINGLE app_type,
+                  app_name,
+                  class_name,
+                  message_class,
+                  program_name FROM zapp_cust INTO @rs_result WHERE program_name = @sy-cprog.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE zcx_app
+        MESSAGE e000 WITH sy-cprog.
+    ENDIF.
+
+    IF rs_result-message_class IS INITIAL.
       RAISE EXCEPTION TYPE zcx_app
         MESSAGE e001.
     ENDIF.
 
-    SELECT SINGLE arbgb FROM t100a INTO @DATA(lv_message_class) WHERE arbgb = @is_customizing-message_class.
+    SELECT SINGLE arbgb FROM t100a INTO @DATA(lv_message_class) WHERE arbgb = @rs_result-message_class.
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE zcx_app
-        MESSAGE e002 WITH is_customizing-message_class.
+        MESSAGE e002 WITH rs_result-message_class.
     ENDIF.
 
-    IF is_customizing-class_name IS INITIAL.
+    IF rs_result-class_name IS INITIAL.
       RAISE EXCEPTION TYPE zcx_app
         MESSAGE e003.
     ENDIF.
 
-    SELECT SINGLE clsname FROM seoclass INTO @DATA(lv_class_name) WHERE clsname = @is_customizing-class_name.
+    SELECT SINGLE clsname FROM seoclass INTO @DATA(lv_class_name) WHERE clsname = @rs_result-class_name.
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE zcx_app
-        MESSAGE e004 WITH is_customizing-class_name.
+        MESSAGE e004 WITH rs_result-class_name.
     ENDIF.
   ENDMETHOD.
 
@@ -101,18 +121,8 @@ CLASS zca_app IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD create_app.
-    SELECT SINGLE app_type,
-                  app_name,
-                  class_name,
-                  message_class,
-                  program_name FROM zapp_cust INTO @DATA(ls_customizing) WHERE program_name = @sy-cprog.
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE zcx_app
-        MESSAGE e000 WITH sy-cprog.
-    ENDIF.
-
     TRY.
-        check_customizing( ls_customizing ).
+        DATA(ls_customizing) = check_customizing( ).
       CATCH zcx_app INTO DATA(lx_error).
         RAISE EXCEPTION lx_error.
     ENDTRY.
@@ -120,10 +130,29 @@ CLASS zca_app IMPLEMENTATION.
     CREATE OBJECT mo_app TYPE (ls_customizing-class_name)
       EXPORTING
         is_customizing = ls_customizing.
+
+    mo_app->init( ).
+  ENDMETHOD.
+
+  METHOD add_container.
+    APPEND io_container TO mt_container.
+  ENDMETHOD.
+
+  METHOD get_container.
+    LOOP AT mt_container REFERENCE INTO DATA(lr_container).
+      IF lr_container->*->mv_name = iv_name.
+        ro_result = lr_container->*.
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+
+    IF ro_result IS NOT BOUND.
+      RAISE EXCEPTION TYPE zcx_app
+        MESSAGE e000 WITH iv_name.
+    ENDIF.
   ENDMETHOD.
 
   METHOD get.
-    BREAK developer.
     IF mo_app IS NOT BOUND.
       TRY.
           create_app( ).
