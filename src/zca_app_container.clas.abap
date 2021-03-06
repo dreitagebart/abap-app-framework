@@ -1,7 +1,7 @@
 CLASS zca_app_container DEFINITION
   PUBLIC
   ABSTRACT
-  CREATE PUBLIC
+  CREATE PRIVATE
   GLOBAL FRIENDS zca_app
                  zcl_app_container_bar
                  zcl_app_container_table
@@ -24,8 +24,9 @@ CLASS zca_app_container DEFINITION
         IMPORTING
           iv_name TYPE string
           iv_side TYPE i,
+      register_events ABSTRACT,
+      create_instance ABSTRACT,
       create_parent,
-      create ABSTRACT,
       get_parent
         RETURNING VALUE(ro_result) TYPE REF TO cl_gui_container,
       get_side
@@ -34,11 +35,12 @@ CLASS zca_app_container DEFINITION
         RETURNING VALUE(rv_result) TYPE string.
 
   PROTECTED SECTION.
+    DATA: mo_app    TYPE REF TO zca_app,
+          mo_parent TYPE REF TO cl_gui_container.
 
   PRIVATE SECTION.
-    DATA: mv_name   TYPE string,
-          mv_side   TYPE i,
-          mo_parent TYPE REF TO cl_gui_container.
+    DATA: mv_name TYPE string,
+          mv_side TYPE i.
 
 ENDCLASS.
 
@@ -57,27 +59,38 @@ CLASS zca_app_container IMPLEMENTATION.
           container_name          = CONV char100( mv_name )
 *  style                   =
 *  lifetime                = lifetime_default
-*  repid                   =
-*  dynnr                   =
-*  no_autodef_progid_dynnr =
+  repid                   = sy-cprog
+  dynnr                   = sy-dynnr
+  no_autodef_progid_dynnr = abap_true
         ).
       WHEN mc_sides-top
         OR mc_sides-left
         OR mc_sides-right
         OR mc_sides-bottom.
+        CASE mv_side.
+          WHEN mc_sides-top.
+            DATA(lv_dock) = cl_gui_docking_container=>dock_at_top.
+          WHEN mc_sides-left.
+            lv_dock = cl_gui_docking_container=>dock_at_left.
+          WHEN mc_sides-right.
+            lv_dock = cl_gui_docking_container=>dock_at_right.
+          WHEN mc_sides-bottom.
+            lv_dock = cl_gui_docking_container=>dock_at_bottom.
+        ENDCASE.
+
         mo_parent = NEW cl_gui_docking_container(
 *    parent                  =
-*    repid                   =
-*    dynnr                   =
-*    side                    = dock_at_left
-*    extension               = 50
+*                      repid                   = sy-cprog
+*                      dynnr                   = sy-dynnr
+                      side                    = lv_dock
+*                      extension               = 50
 *    style                   =
 *    lifetime                = lifetime_default
 *    caption                 =
 *    metric                  = 0
-*    ratio                   =
-*    no_autodef_progid_dynnr =
-*    name                    =
+    ratio                   = 50
+    no_autodef_progid_dynnr = abap_true
+*                      name                    = mv_name
         ).
     ENDCASE.
   ENDMETHOD.

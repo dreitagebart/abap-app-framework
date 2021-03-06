@@ -22,6 +22,78 @@ CLASS zca_app DEFINITION
         RETURNING VALUE(ro_result) TYPE REF TO zca_app.
 
     METHODS:
+      on_table_double_click
+        IMPORTING
+          iv_row    TYPE int4
+          iv_column TYPE string
+          io_table  TYPE REF TO zcl_app_container_table,
+      on_table_link_click
+        IMPORTING
+          iv_row    TYPE int4
+          iv_column TYPE string
+          io_table  TYPE REF TO zcl_app_container_table,
+      on_table_added_function
+        IMPORTING
+          iv_function TYPE string
+          io_table    TYPE REF TO zcl_app_container_table,
+      on_table_before_function
+        IMPORTING
+          iv_function TYPE string
+          io_table    TYPE REF TO zcl_app_container_table,
+      on_table_after_function
+        IMPORTING
+          iv_function TYPE string
+          io_table    TYPE REF TO zcl_app_container_table,
+      on_tree_after_function
+        IMPORTING
+          iv_function TYPE string
+          io_tree     TYPE REF TO zcl_app_container_tree,
+      on_tree_before_function
+        IMPORTING
+          iv_function TYPE string
+          io_tree     TYPE REF TO zcl_app_container_tree,
+      on_tree_added_function
+        IMPORTING
+          iv_function TYPE string
+          io_tree     TYPE REF TO zcl_app_container_tree,
+      on_tree_checkbox_change
+        IMPORTING
+          iv_column  TYPE string
+          iv_checked TYPE abap_bool
+          iv_node    TYPE salv_de_node_key
+          io_tree    TYPE REF TO zcl_app_container_tree,
+      on_tree_double_click
+        IMPORTING
+          iv_column TYPE string
+          iv_node   TYPE salv_de_node_key
+          io_tree   TYPE REF TO zcl_app_container_tree,
+      on_tree_expand_empty_folder
+        IMPORTING
+          iv_node TYPE salv_de_node_key
+          io_tree TYPE REF TO zcl_app_container_tree,
+      on_tree_keypress
+        IMPORTING
+          iv_column TYPE string
+          iv_key    TYPE int4
+          iv_node   TYPE salv_de_node_key
+          io_tree   TYPE REF TO zcl_app_container_tree,
+      on_tree_link_click
+        IMPORTING
+          iv_column TYPE string
+          iv_node   TYPE salv_de_node_key
+          io_tree   TYPE REF TO zcl_app_container_tree,
+      on_bar_close
+        IMPORTING
+          iv_id  TYPE int4
+          io_bar TYPE REF TO zcl_app_container_bar,
+      on_bar_click
+        IMPORTING
+          iv_id        TYPE int4
+          io_container TYPE REF TO cl_gui_container
+          io_bar       TYPE REF TO zcl_app_container_bar,
+      on_bar_empty
+        IMPORTING
+          io_bar TYPE REF TO zcl_app_container_bar,
       add_container
         IMPORTING
           io_container TYPE REF TO zca_app_container,
@@ -47,10 +119,10 @@ CLASS zca_app DEFINITION
           iv_screen TYPE sydynnr,
       on_pbo ABSTRACT
         IMPORTING
-          iv_screen TYPE sydynnr,
+          io_dynpro TYPE REF TO zcl_app_dynpro,
       on_init ABSTRACT
         IMPORTING
-          iv_screen TYPE sydynnr,
+          io_dynpro TYPE REF TO zcl_app_dynpro,
       init ABSTRACT,
       pai ABSTRACT,
       pbo ABSTRACT.
@@ -82,6 +154,38 @@ ENDCLASS.
 
 
 CLASS zca_app IMPLEMENTATION.
+  METHOD on_bar_click.
+
+  ENDMETHOD.
+
+  METHOD on_bar_close.
+
+  ENDMETHOD.
+
+  METHOD on_bar_empty.
+
+  ENDMETHOD.
+
+  METHOD on_table_added_function.
+
+  ENDMETHOD.
+
+  METHOD on_table_after_function.
+
+  ENDMETHOD.
+
+  METHOD on_table_before_function.
+
+  ENDMETHOD.
+
+  METHOD on_table_double_click.
+
+  ENDMETHOD.
+
+  METHOD on_table_link_click.
+
+  ENDMETHOD.
+
   METHOD check_customizing.
     SELECT SINGLE app_type,
                   app_name,
@@ -135,6 +239,8 @@ CLASS zca_app IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD add_container.
+    io_container->mo_app = me.
+
     APPEND io_container TO mt_container.
   ENDMETHOD.
 
@@ -186,5 +292,37 @@ CLASS zca_app IMPLEMENTATION.
 
   METHOD get_program_name.
     rv_result = ms_customizing-program_name.
+  ENDMETHOD.
+
+  METHOD on_tree_added_function.
+
+  ENDMETHOD.
+
+  METHOD on_tree_after_function.
+
+  ENDMETHOD.
+
+  METHOD on_tree_before_function.
+
+  ENDMETHOD.
+
+  METHOD on_tree_checkbox_change.
+
+  ENDMETHOD.
+
+  METHOD on_tree_double_click.
+
+  ENDMETHOD.
+
+  METHOD on_tree_expand_empty_folder.
+
+  ENDMETHOD.
+
+  METHOD on_tree_keypress.
+
+  ENDMETHOD.
+
+  METHOD on_tree_link_click.
+
   ENDMETHOD.
 ENDCLASS.
