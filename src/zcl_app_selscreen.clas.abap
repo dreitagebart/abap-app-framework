@@ -54,7 +54,7 @@ CLASS zcl_app_selscreen IMPLEMENTATION.
         refresh_from_selscreen( ).
       CATCH zcx_app.
     ENDTRY.
-    BREAK developer.
+
     ASSIGN mr_selscreen->* TO FIELD-SYMBOL(<selscreen>).
 
     CLEAR <selscreen>.
@@ -62,6 +62,10 @@ CLASS zcl_app_selscreen IMPLEMENTATION.
     LOOP AT mt_fields REFERENCE INTO DATA(lr_field).
       CASE lr_field->kind.
         WHEN 'S'.
+          IF lr_field->sign IS INITIAL.
+            CONTINUE.
+          ENDIF.
+
           ASSIGN COMPONENT lr_field->selname OF STRUCTURE <selscreen> TO <selopt>.
 
           APPEND INITIAL LINE TO <selopt> ASSIGNING FIELD-SYMBOL(<line>).

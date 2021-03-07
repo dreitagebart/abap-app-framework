@@ -1,3 +1,3 @@
-FUNCTION-POOL ZAPP_GUI.                     "MESSAGE-ID ..
+FUNCTION-POOL zapp_gui MESSAGE-ID zapp_messages.
 
-* INCLUDE LZAPP_GUID...                      " Local class definition
+DATA: go_app TYPE REF TO zcl_app_report.

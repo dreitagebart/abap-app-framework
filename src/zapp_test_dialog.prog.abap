@@ -5,10 +5,11 @@
 *&---------------------------------------------------------------------*
 PROGRAM zapp_test_dialog.
 
+INCLUDE zapp_gui_connector.
+
 DATA go_app TYPE REF TO zcl_app_test_dialog.
 
 MODULE pbo OUTPUT.
-  BREAK developer.
   go_app = CAST #( zcl_app_test_dialog=>get( ) ).
 
   go_app->pbo( ).

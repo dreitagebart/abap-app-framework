@@ -8,8 +8,8 @@
 *   User-defined Include-files (if necessary).                    *
 *******************************************************************
 * INCLUDE LZAPP_GUIF...                      " Subroutines
-* INCLUDE LZAPP_GUIO...                      " PBO-Modules
-* INCLUDE LZAPP_GUII...                      " PAI-Modules
+  INCLUDE lzapp_guipbo.                      " PBO-Modules
+  INCLUDE lzapp_guipai.                      " PAI-Modules
 * INCLUDE LZAPP_GUIE...                      " Events
 * INCLUDE LZAPP_GUIP...                      " Local class implement.
 * INCLUDE LZAPP_GUIT99.                      " ABAP Unit tests

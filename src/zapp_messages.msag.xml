@@ -80,6 +80,42 @@
      <MSGNR>011</MSGNR>
      <TEXT>Container &amp;1 does not exist</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>012</MSGNR>
+     <TEXT>Button &amp;1 already set</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>013</MSGNR>
+     <TEXT>Button &amp;1 does not exist</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>014</MSGNR>
+     <TEXT>Icon and text for button &amp;1 not set</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>015</MSGNR>
+     <TEXT>Column &amp;1 not found</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>016</MSGNR>
+     <TEXT>You must include ZAPP_GUI_CONNECTOR into your app</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>017</MSGNR>
+     <TEXT>Could not connect to GUI</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>
