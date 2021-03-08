@@ -28,11 +28,14 @@ CLASS zca_app DEFINITION
       call_modal
         IMPORTING
           iv_screen TYPE sydynnr
-          iv_center TYPE abap_bool DEFAULT abap_true
+*          iv_center TYPE abap_bool DEFAULT abap_true
           iv_x      TYPE i DEFAULT 26
           iv_y      TYPE i DEFAULT 5,
       get_dynpro
         RETURNING VALUE(ro_result) TYPE REF TO zcl_app_dynpro,
+      on_table_extension
+        IMPORTING
+          io_table TYPE REF TO zcl_app_container_table,
       on_table_double_click
         IMPORTING
           iv_row    TYPE int4
@@ -146,7 +149,6 @@ CLASS zca_app DEFINITION
           mt_container    TYPE tt_container.
 
   PRIVATE SECTION.
-
     CLASS-DATA: mo_app TYPE REF TO zca_app.
 
     CLASS-METHODS:
@@ -172,20 +174,10 @@ ENDCLASS.
 
 
 CLASS zca_app IMPLEMENTATION.
-  METHOD call_screen.
-    DATA lt_params TYPE abap_parmbind_tab.
-
-    GET REFERENCE OF iv_screen INTO DATA(lr_screen).
-
-    INSERT VALUE abap_parmbind(
-      name  = 'IV_SCREEN'
-      kind  = cl_abap_classdescr=>exporting
-      value = lr_screen
-    ) INTO TABLE lt_params.
-
-    CALL METHOD mo_connector->('CALL_SCREEN')
-      PARAMETER-TABLE lt_params.
+  METHOD add_container.
+    APPEND io_container TO mt_container.
   ENDMETHOD.
+
 
   METHOD call_modal.
     DATA lt_params TYPE abap_parmbind_tab.
@@ -198,13 +190,13 @@ CLASS zca_app IMPLEMENTATION.
       value = lr_screen
     ) INTO TABLE lt_params.
 
-    GET REFERENCE OF iv_center INTO DATA(lr_center).
-
-    INSERT VALUE abap_parmbind(
-      name  = 'IV_CENTER'
-      kind  = cl_abap_classdescr=>exporting
-      value = lr_center
-    ) INTO TABLE lt_params.
+*    GET REFERENCE OF iv_center INTO DATA(lr_center).
+*
+*    INSERT VALUE abap_parmbind(
+*      name  = 'IV_CENTER'
+*      kind  = cl_abap_classdescr=>exporting
+*      value = lr_center
+*    ) INTO TABLE lt_params.
 
     GET REFERENCE OF iv_x INTO DATA(lr_x).
 
@@ -226,72 +218,22 @@ CLASS zca_app IMPLEMENTATION.
       PARAMETER-TABLE lt_params.
   ENDMETHOD.
 
-  METHOD get_screen_resolution.
-    DATA(lo_consumer) = cl_gui_props_consumer=>create_consumer( ).
 
-    rs_result = lo_consumer->get_metric_factors( ).
+  METHOD call_screen.
+    DATA lt_params TYPE abap_parmbind_tab.
+
+    GET REFERENCE OF iv_screen INTO DATA(lr_screen).
+
+    INSERT VALUE abap_parmbind(
+      name  = 'IV_SCREEN'
+      kind  = cl_abap_classdescr=>exporting
+      value = lr_screen
+    ) INTO TABLE lt_params.
+
+    CALL METHOD mo_connector->('CALL_SCREEN')
+      PARAMETER-TABLE lt_params.
   ENDMETHOD.
 
-  METHOD connect_gui.
-    DATA(lv_connect) = |({ ms_customizing-program_name })LCL_GUI_CONNECTOR=>CONNECTION|.
-
-    ASSIGN (lv_connect) TO FIELD-SYMBOL(<connection>).
-
-    IF <connection> IS NOT ASSIGNED
-    OR <connection> = abap_false.
-      RAISE EXCEPTION TYPE zcx_app
-        MESSAGE a016.
-    ENDIF.
-
-    DATA lo_connector TYPE REF TO object.
-
-    DATA(lv_type) = |\\PROGRAM={ ms_customizing-program_name }\\CLASS=LCL_GUI_CONNECTOR|.
-
-    CREATE OBJECT mo_connector TYPE (lv_type)
-      EXPORTING
-        io_app = me.
-
-    IF mo_connector IS NOT BOUND.
-      RAISE EXCEPTION TYPE zcx_app
-        MESSAGE a017.
-    ENDIF.
-  ENDMETHOD.
-
-  METHOD on_bar_click.
-
-  ENDMETHOD.
-
-  METHOD on_bar_close.
-
-  ENDMETHOD.
-
-  METHOD on_bar_empty.
-
-  ENDMETHOD.
-
-  METHOD on_table_added_function.
-
-  ENDMETHOD.
-
-  METHOD on_table_after_function.
-
-  ENDMETHOD.
-
-  METHOD on_table_before_function.
-
-  ENDMETHOD.
-
-  METHOD on_table_double_click.
-
-  ENDMETHOD.
-
-  METHOD on_table_link_click.
-
-  ENDMETHOD.
-
-  METHOD get_dynpro.
-    ro_result = mo_dynpro.
-  ENDMETHOD.
 
   METHOD check_customizing.
     SELECT SINGLE app_type,
@@ -327,6 +269,33 @@ CLASS zca_app IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
+
+  METHOD connect_gui.
+    DATA(lv_connect) = |({ ms_customizing-program_name })LCL_GUI_CONNECTOR=>CONNECTION|.
+
+    ASSIGN (lv_connect) TO FIELD-SYMBOL(<connection>).
+
+    IF <connection> IS NOT ASSIGNED
+    OR <connection> = abap_false.
+      RAISE EXCEPTION TYPE zcx_app
+        MESSAGE a016.
+    ENDIF.
+
+    DATA lo_connector TYPE REF TO object.
+
+    DATA(lv_type) = |\\PROGRAM={ ms_customizing-program_name }\\CLASS=LCL_GUI_CONNECTOR|.
+
+    CREATE OBJECT mo_connector TYPE (lv_type)
+      EXPORTING
+        io_app = me.
+
+    IF mo_connector IS NOT BOUND.
+      RAISE EXCEPTION TYPE zcx_app
+        MESSAGE a017.
+    ENDIF.
+  ENDMETHOD.
+
+
   METHOD constructor.
     ms_customizing = is_customizing.
 
@@ -336,6 +305,7 @@ CLASS zca_app IMPLEMENTATION.
         RAISE EXCEPTION lx_error.
     ENDTRY.
   ENDMETHOD.
+
 
   METHOD create_app.
     TRY.
@@ -351,11 +321,34 @@ CLASS zca_app IMPLEMENTATION.
     mo_app->init( ).
   ENDMETHOD.
 
-  METHOD add_container.
-    io_container->mo_app = me.
 
-    APPEND io_container TO mt_container.
+  METHOD get.
+    IF mo_app IS NOT BOUND.
+      TRY.
+          create_app( ).
+        CATCH zcx_app INTO DATA(lx_error).
+          MESSAGE lx_error.
+      ENDTRY.
+    ENDIF.
+
+    ro_result = mo_app.
   ENDMETHOD.
+
+
+  METHOD get_app_name.
+    rv_result = ms_customizing-app_name.
+  ENDMETHOD.
+
+
+  METHOD get_app_type.
+    rv_result = ms_customizing-app_type.
+  ENDMETHOD.
+
+
+  METHOD get_class_name.
+    rv_result = ms_customizing-class_name.
+  ENDMETHOD.
+
 
   METHOD get_container.
     LOOP AT mt_container REFERENCE INTO DATA(lr_container).
@@ -371,69 +364,113 @@ CLASS zca_app IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
-  METHOD get.
-    IF mo_app IS NOT BOUND.
-      TRY.
-          create_app( ).
-        CATCH zcx_app INTO DATA(lx_error).
-          MESSAGE lx_error.
-      ENDTRY.
-    ENDIF.
-
-    ro_result = mo_app.
-  ENDMETHOD.
-
-  METHOD get_app_name.
-    rv_result = ms_customizing-app_name.
-  ENDMETHOD.
-
-  METHOD get_app_type.
-    rv_result = ms_customizing-app_type.
-  ENDMETHOD.
-
-  METHOD get_class_name.
-    rv_result = ms_customizing-class_name.
-  ENDMETHOD.
 
   METHOD get_customizing.
     rs_result = ms_customizing.
   ENDMETHOD.
 
+
+  METHOD get_dynpro.
+    ro_result = mo_dynpro.
+  ENDMETHOD.
+
+
   METHOD get_message_class.
     rv_result = ms_customizing-message_class.
   ENDMETHOD.
+
 
   METHOD get_program_name.
     rv_result = ms_customizing-program_name.
   ENDMETHOD.
 
+
+  METHOD get_screen_resolution.
+    DATA(lo_consumer) = cl_gui_props_consumer=>create_consumer( ).
+
+    rs_result = lo_consumer->get_metric_factors( ).
+  ENDMETHOD.
+
+
+  METHOD on_bar_click.
+
+  ENDMETHOD.
+
+
+  METHOD on_bar_close.
+
+  ENDMETHOD.
+
+
+  METHOD on_bar_empty.
+
+  ENDMETHOD.
+
+
+  METHOD on_table_added_function.
+
+  ENDMETHOD.
+
+
+  METHOD on_table_after_function.
+
+  ENDMETHOD.
+
+
+  METHOD on_table_before_function.
+
+  ENDMETHOD.
+
+
+  METHOD on_table_double_click.
+
+  ENDMETHOD.
+
+
+  METHOD on_table_extension.
+
+  ENDMETHOD.
+
+
+  METHOD on_table_link_click.
+
+  ENDMETHOD.
+
+
   METHOD on_tree_added_function.
 
   ENDMETHOD.
+
 
   METHOD on_tree_after_function.
 
   ENDMETHOD.
 
+
   METHOD on_tree_before_function.
 
   ENDMETHOD.
+
 
   METHOD on_tree_checkbox_change.
 
   ENDMETHOD.
 
+
   METHOD on_tree_double_click.
 
   ENDMETHOD.
+
 
   METHOD on_tree_expand_empty_folder.
 
   ENDMETHOD.
 
+
   METHOD on_tree_keypress.
 
   ENDMETHOD.
+
 
   METHOD on_tree_link_click.
 

@@ -140,9 +140,9 @@ CLASS zcl_app_container_bar IMPLEMENTATION.
     TRY.
         DATA(lr_caption) = REF #( mt_captions[ name = iv_name ] ).
 
-        LOOP AT mt_children REFERENCE INTO DATA(lr_children).
-          IF lr_children->*->get_name( ) = iv_name.
-            ro_result = lr_children->*.
+        LOOP AT mt_children REFERENCE INTO DATA(lr_child).
+          IF lr_child->*->get_name( ) = iv_name.
+            ro_result = lr_child->*.
           ENDIF.
         ENDLOOP.
       CATCH cx_sy_itab_line_not_found.

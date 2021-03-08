@@ -116,6 +116,18 @@
      <MSGNR>017</MSGNR>
      <TEXT>Could not connect to GUI</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>018</MSGNR>
+     <TEXT>Function &amp;1 does not exist</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>019</MSGNR>
+     <TEXT>Function &amp;1 already exists</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>

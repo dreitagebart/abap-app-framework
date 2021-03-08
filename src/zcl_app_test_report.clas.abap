@@ -16,9 +16,10 @@ CLASS zcl_app_test_report DEFINITION
            tt_output TYPE TABLE OF sflight.
 
     CONSTANTS: BEGIN OF mc_container,
-                 bar   TYPE string VALUE 'BAR',
-                 table TYPE string VALUE 'TABLE',
-                 tree  TYPE string VALUE 'TREE',
+                 output TYPE string VALUE 'OUTPUT',
+                 bar    TYPE string VALUE 'BAR',
+                 table  TYPE string VALUE 'TABLE',
+                 tree   TYPE string VALUE 'TREE',
                END OF mc_container,
 
                BEGIN OF mc_functions,
@@ -52,7 +53,7 @@ CLASS zcl_app_test_report DEFINITION
 
     METHODS:
       check_selection REDEFINITION,
-      extend_output REDEFINITION,
+      on_table_extension REDEFINITION,
       on_init REDEFINITION,
       on_pai REDEFINITION,
       on_pbo REDEFINITION,
@@ -81,26 +82,33 @@ CLASS zcl_app_test_report IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
-  METHOD extend_output.
-    DATA(lo_functions) = io_table->get_functions( ).
+  METHOD on_table_extension.
+    BREAK developer.
+    CASE io_table->get_name( ).
+      WHEN mc_container-output.
+        DATA(lo_functions) = io_table->get_functions( ).
 
-    lo_functions->add_function(
-      iv_name      = mc_functions-output-test
-      iv_icon      = icon_okay
-      iv_text      = 'Test'
-      iv_quickinfo = ''
-      iv_position  = if_salv_c_function_position=>right_of_salv_functions
-    ).
+        TRY.
+            lo_functions->add_function(
+              iv_name      = mc_functions-output-test
+              iv_icon      = icon_okay
+              iv_text      = 'Test'
+              iv_tooltip    = ''
+              iv_position  = if_salv_c_function_position=>right_of_salv_functions
+            ).
+          CATCH zcx_app.
+        ENDTRY.
 
-    LOOP AT io_table->get_columns( )->get( ) REFERENCE INTO DATA(lr_column).
-      CASE lr_column->name.
-        WHEN mc_columns-output-price.
-          lr_column->column->set_editable( ).
-          lr_column->column->set_optimized( ).
-        WHEN OTHERS.
-          lr_column->column->set_optimized( ).
-      ENDCASE.
-    ENDLOOP.
+        LOOP AT io_table->get_columns( )->get( ) REFERENCE INTO DATA(lr_column).
+          CASE lr_column->name.
+            WHEN mc_columns-output-price.
+              lr_column->column->set_editable( ).
+              lr_column->column->set_optimized( ).
+            WHEN OTHERS.
+              lr_column->column->set_optimized( ).
+          ENDCASE.
+        ENDLOOP.
+    ENDCASE.
   ENDMETHOD.
 
   METHOD on_init.

@@ -4,42 +4,52 @@ CLASS zcl_app_table_functions DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
+    TYPES: BEGIN OF ts_function,
+             name     TYPE string,
+             function TYPE REF TO zcl_app_table_function,
+           END OF ts_function,
+
+           tt_function TYPE TABLE OF ts_function WITH KEY name.
+
     METHODS:
       add_function
         IMPORTING
-          iv_name      TYPE string
-          iv_icon      TYPE icon_d
-          iv_text      TYPE string
-          iv_quickinfo TYPE string
-          iv_position  TYPE salv_de_function_pos DEFAULT if_salv_c_function_position=>right_of_salv_functions,
+                  iv_name     TYPE string
+                  iv_icon     TYPE icon_d
+                  iv_text     TYPE string OPTIONAL
+                  iv_tooltip  TYPE string OPTIONAL
+                  iv_position TYPE salv_de_function_pos DEFAULT if_salv_c_function_position=>right_of_salv_functions
+        RAISING   zcx_app,
+      disable_function
+        IMPORTING
+                  iv_name TYPE string
+        RAISING   zcx_app,
       enable_function
         IMPORTING
-          iv_name    TYPE string
-          iv_enabled TYPE abap_bool DEFAULT abap_true,
+                  iv_name TYPE string
+        RAISING   zcx_app,
       get_functions
-        RETURNING VALUE(rt_result) TYPE salv_t_ui_func,
-      is_item
+        RETURNING VALUE(rt_result) TYPE tt_function,
+      is_function
         IMPORTING
                   iv_name          TYPE string
-        RETURNING VALUE(rv_result) TYPE abap_bool,
-      is_salv_function
-        IMPORTING
-                  iv_name          TYPE string
-        RETURNING VALUE(rv_result) TYPE abap_bool,
+        RETURNING VALUE(rv_result) TYPE abap_bool
+        RAISING   zcx_app,
       is_enabled
         IMPORTING
                   iv_name          TYPE string
-        RETURNING VALUE(rv_result) TYPE abap_bool,
+        RETURNING VALUE(rv_result) TYPE abap_bool
+        RAISING   zcx_app,
       is_visible
         IMPORTING
                   iv_name          TYPE string
-        RETURNING VALUE(rv_result) TYPE abap_bool,
+        RETURNING VALUE(rv_result) TYPE abap_bool
+        RAISING   zcx_app,
       remove_function
         IMPORTING
-          iv_name TYPE string,
-      constructor
-        IMPORTING
-          io_functions TYPE REF TO cl_salv_functions_list,
+                  iv_name TYPE string
+        RAISING   zcx_app,
+      constructor,
       set_abc_analysis
         IMPORTING
           iv_active TYPE abap_bool DEFAULT abap_true,
@@ -171,7 +181,9 @@ CLASS zcl_app_table_functions DEFINITION
   PROTECTED SECTION.
 
   PRIVATE SECTION.
-    DATA: mo_functions TYPE REF TO cl_salv_functions_list.
+    DATA: mt_exclude   TYPE lvc_t_excl,
+          mt_functions TYPE tt_function.
+*    DATA: mo_functions TYPE REF TO cl_salv_functions_list.
 
 ENDCLASS.
 
@@ -179,229 +191,405 @@ ENDCLASS.
 
 CLASS zcl_app_table_functions IMPLEMENTATION.
   METHOD constructor.
-    mo_functions = io_functions.
+
+
+*    mo_functions = io_functions.
   ENDMETHOD.
 
   METHOD set_abc_analysis.
-    mo_functions->set_abc_analysis( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_call_abc TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_abc_analysis( iv_active ).
   ENDMETHOD.
 
   METHOD set_aggregation_average.
-    mo_functions->set_aggregation_average( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_average TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_aggregation_average( iv_active ).
   ENDMETHOD.
 
   METHOD set_aggregation_count.
-    mo_functions->set_aggregation_count( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_count TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_aggregation_count( iv_active ).
   ENDMETHOD.
 
   METHOD set_aggregation_maximum.
-    mo_functions->set_aggregation_maximum( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_maximum TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_aggregation_maximum( iv_active ).
   ENDMETHOD.
 
   METHOD set_aggregation_minimum.
-    mo_functions->set_aggregation_minimum( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_minimum TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_aggregation_minimum( iv_active ).
   ENDMETHOD.
 
   METHOD set_aggregation_total.
-    mo_functions->set_aggregation_total( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_auf TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_aggregation_total( iv_active ).
   ENDMETHOD.
 
   METHOD set_default.
-    mo_functions->set_default( iv_active ).
+*    mo_functions->set_default( iv_active ).
   ENDMETHOD.
 
   METHOD set_detail.
-    mo_functions->set_detail( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_detail TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_detail( iv_active ).
   ENDMETHOD.
 
   METHOD set_export_folder.
-    mo_functions->set_export_folder( iv_active ).
+*        IF iv_active = abap_false.
+*      APPEND cl_gui_alv_grid=>mc_mb TO mt_exclude.
+*    ENDIF.
+
+*    mo_functions->set_export_folder( iv_active ).
   ENDMETHOD.
 
   METHOD set_export_html.
-    mo_functions->set_export_html( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_html TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_export_html( iv_active ).
   ENDMETHOD.
 
   METHOD set_export_localfile.
-    mo_functions->set_export_localfile( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_pc_file TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_export_localfile( iv_active ).
   ENDMETHOD.
 
   METHOD set_export_mail.
-    mo_functions->set_export_mail( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_to_office TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_export_mail( iv_active ).
   ENDMETHOD.
 
   METHOD set_export_send.
-    mo_functions->set_export_send( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_send TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_export_send( iv_active ).
   ENDMETHOD.
 
   METHOD set_export_spreadsheet.
-    mo_functions->set_export_spreadsheet( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_to_office TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_export_spreadsheet( iv_active ).
   ENDMETHOD.
 
   METHOD set_export_wordprocessor.
-    mo_functions->set_export_wordprocessor( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_word_processor TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_export_wordprocessor( iv_active ).
   ENDMETHOD.
 
   METHOD set_export_xml.
-    mo_functions->set_export_xml( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_call_xml_export TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_export_xml( iv_active ).
   ENDMETHOD.
 
   METHOD set_filter.
-    mo_functions->set_filter( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_filter TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_filter( iv_active ).
   ENDMETHOD.
 
   METHOD set_filter_delete.
-    mo_functions->set_filter_delete( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_delete_filter TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_filter_delete( iv_active ).
   ENDMETHOD.
 
   METHOD set_find.
-    mo_functions->set_find( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_find TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_find( iv_active ).
   ENDMETHOD.
 
   METHOD set_find_more.
-    mo_functions->set_find_more( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_find_more TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_find_more( iv_active ).
   ENDMETHOD.
 
   METHOD set_graphics.
-    mo_functions->set_graphics( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_graph TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_graphics( iv_active ).
   ENDMETHOD.
 
   METHOD set_group_aggregation.
-    mo_functions->set_group_aggregation( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_mb_sum TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_group_aggregation( iv_active ).
   ENDMETHOD.
 
   METHOD set_group_export.
-    mo_functions->set_group_export( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_mb_export TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_group_export( iv_active ).
   ENDMETHOD.
 
   METHOD set_group_filter.
-    mo_functions->set_group_filter( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_mb_filter TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_group_filter( iv_active ).
   ENDMETHOD.
 
   METHOD set_group_layout.
-    mo_functions->set_group_layout( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_mb_variant TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_group_layout( iv_active ).
   ENDMETHOD.
 
   METHOD set_group_sort.
-    mo_functions->set_group_sort( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_sort TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_group_sort( iv_active ).
   ENDMETHOD.
 
   METHOD set_group_subtotal.
-    mo_functions->set_group_subtotal( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_mb_subtot TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_group_subtotal( iv_active ).
   ENDMETHOD.
 
   METHOD set_group_view.
-    mo_functions->set_group_view( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_mb_view TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_group_view( iv_active ).
   ENDMETHOD.
 
   METHOD set_layout_change.
-    mo_functions->set_layout_change( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_variant_admin TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_layout_change( iv_active ).
   ENDMETHOD.
 
   METHOD set_layout_load.
-    mo_functions->set_layout_load( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_load_variant TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_layout_load( iv_active ).
   ENDMETHOD.
 
   METHOD set_layout_maintain.
-    mo_functions->set_layout_maintain( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_maintain_variant TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_layout_maintain( iv_active ).
   ENDMETHOD.
 
   METHOD set_layout_save.
-    mo_functions->set_layout_maintain( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_save_variant TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_layout_maintain( iv_active ).
   ENDMETHOD.
 
   METHOD set_print.
-    mo_functions->set_print( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_print TO mt_exclude.
+    ENDIF.
+
+*    mo_functions->set_print( iv_active ).
   ENDMETHOD.
 
   METHOD set_print_preview.
-    mo_functions->set_print_preview( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_print_prev TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_print_preview( iv_active ).
   ENDMETHOD.
 
   METHOD set_sort_asc.
-    mo_functions->set_sort_asc( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_sort_asc TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_sort_asc( iv_active ).
   ENDMETHOD.
 
   METHOD set_sort_desc.
-    mo_functions->set_sort_desc( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_sort_dsc TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_sort_desc( iv_active ).
   ENDMETHOD.
 
   METHOD set_subtotals.
-    mo_functions->set_subtotals( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_subtot TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_subtotals( iv_active ).
   ENDMETHOD.
 
   METHOD set_subtotals_outline.
-    mo_functions->set_subtotals_outline( iv_active ).
+*        IF iv_active = abap_false.
+*      APPEND cl_gui_alv_grid=>mc_fc_ TO mt_exclude.
+*    ENDIF.
+*    mo_functions->set_subtotals_outline( iv_active ).
   ENDMETHOD.
 
   METHOD set_view_crystal.
-    mo_functions->set_view_crystal( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_view_crystal TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_view_crystal( iv_active ).
   ENDMETHOD.
 
   METHOD set_view_excel.
-    mo_functions->set_view_excel( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_view_excel TO mt_exclude.
+    ENDIF.
+*    mo_functions->set_view_excel( iv_active ).
   ENDMETHOD.
 
   METHOD set_view_grid.
-    mo_functions->set_view_grid( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_view_grid TO mt_exclude.
+    ENDIF.
   ENDMETHOD.
 
   METHOD set_view_lotus.
-    mo_functions->set_view_lotus( iv_active ).
+    IF iv_active = abap_false.
+      APPEND cl_gui_alv_grid=>mc_fc_view_lotus TO mt_exclude.
+    ENDIF.
+
   ENDMETHOD.
 
-  METHOD is_item.
-    rv_result = mo_functions->is_item( CONV #( iv_name ) ).
-  ENDMETHOD.
-
-  METHOD is_salv_function.
-    rv_result = mo_functions->is_salv_function( CONV #( iv_name ) ).
+  METHOD is_function.
+    IF line_exists( mt_functions[ name = iv_name ] ).
+      rv_result = abap_true.
+    ENDIF.
   ENDMETHOD.
 
   METHOD is_enabled.
-    rv_result = mo_functions->is_enabled( CONV #( iv_name ) ).
+    TRY.
+        DATA(lr_function) = REF #( mt_functions[ name = iv_name ] ).
+
+        rv_result = lr_function->function->mv_enabled.
+      CATCH cx_sy_itab_line_not_found.
+        RAISE EXCEPTION TYPE zcx_app
+          MESSAGE e018 WITH iv_name.
+    ENDTRY.
   ENDMETHOD.
 
   METHOD get_functions.
-    rt_result = mo_functions->get_functions( ).
+    rt_result = mt_functions.
   ENDMETHOD.
 
   METHOD is_visible.
-    rv_result = mo_functions->is_visible( CONV #( iv_name ) ).
+    TRY.
+        DATA(lr_function) = REF #( mt_functions[ name = iv_name ] ).
+
+        rv_result = lr_function->function->mv_visible.
+      CATCH cx_sy_itab_line_not_found.
+        RAISE EXCEPTION TYPE zcx_app
+          MESSAGE e018 WITH iv_name.
+    ENDTRY.
   ENDMETHOD.
 
   METHOD remove_function.
     TRY.
-        mo_functions->remove_function( CONV #( iv_name ) ).
-      CATCH cx_salv_not_found.
-      CATCH cx_salv_wrong_call.
+        DATA(lr_function) = REF #( mt_functions[ name = iv_name ] ).
+
+        CLEAR lr_function->*.
+        DELETE mt_functions INDEX sy-tabix.
+      CATCH cx_sy_itab_line_not_found.
+        RAISE EXCEPTION TYPE zcx_app
+          MESSAGE e018 WITH iv_name.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD disable_function.
+    TRY.
+        DATA(lr_function) = REF #( mt_functions[ name = iv_name ] ).
+
+        lr_function->function->mv_enabled = abap_false.
+      CATCH cx_sy_itab_line_not_found.
+        RAISE EXCEPTION TYPE zcx_app
+          MESSAGE e018 WITH iv_name.
     ENDTRY.
   ENDMETHOD.
 
   METHOD enable_function.
     TRY.
-        mo_functions->enable_function(
-          name    = CONV #( iv_name )
-          boolean = iv_enabled
-        ).
-      CATCH cx_salv_wrong_call.
-      CATCH cx_salv_not_found.
+        DATA(lr_function) = REF #( mt_functions[ name = iv_name ] ).
+
+        lr_function->function->mv_enabled = abap_true.
+      CATCH cx_sy_itab_line_not_found.
+        RAISE EXCEPTION TYPE zcx_app
+          MESSAGE e018 WITH iv_name.
     ENDTRY.
   ENDMETHOD.
 
   METHOD add_function.
+    IF line_exists( mt_functions[ name = iv_name ] ).
+      RAISE EXCEPTION TYPE zcx_app
+        MESSAGE e019 WITH iv_name.
+    ENDIF.
 
+    DATA(lo_function) = NEW zcl_app_table_function(
+      iv_function = iv_name
+      iv_icon     = iv_icon
+      iv_text     = iv_text
+      iv_tooltip  = iv_tooltip
+    ).
 
-    TRY.
-        mo_functions->add_function(
-          name     = CONV #( iv_name )
-          icon     = CONV #( iv_icon )
-          text     = iv_text
-          tooltip  = iv_text
-          position = iv_position
-        ).
-      CATCH cx_salv_existing.
-      CATCH cx_salv_wrong_call.
-    ENDTRY.
+    APPEND VALUE ts_function( name     = iv_name
+                              function = lo_function ) TO mt_functions.
   ENDMETHOD.
 ENDCLASS.

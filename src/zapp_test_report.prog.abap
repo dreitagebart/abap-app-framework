@@ -16,7 +16,6 @@ SELECT-OPTIONS: s_carrid FOR go_app->ms_selopts-sflight-carrid,
 SELECTION-SCREEN END OF BLOCK sel.
 
 INITIALIZATION.
-  BREAK developer.
   go_app = CAST #( zcl_app_test_report=>get( ) ).
 
 AT SELECTION-SCREEN OUTPUT.

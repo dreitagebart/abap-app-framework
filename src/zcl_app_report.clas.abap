@@ -2,16 +2,14 @@ CLASS zcl_app_report DEFINITION
   INHERITING FROM zca_app
   ABSTRACT
   PUBLIC
-  CREATE PUBLIC.
+  CREATE PUBLIC
+  GLOBAL FRIENDS zcl_app_output.
 
   PUBLIC SECTION.
     METHODS:
       init REDEFINITION,
       pai REDEFINITION,
       pbo REDEFINITION,
-      extend_output
-        IMPORTING
-          io_table TYPE REF TO zcl_app_alv_table,
       check_selection ABSTRACT
         RETURNING VALUE(rv_skip) TYPE abap_bool,
       set_selscreen
@@ -29,7 +27,7 @@ CLASS zcl_app_report DEFINITION
 
   PRIVATE SECTION.
     DATA: mr_output    TYPE REF TO data,
-          mo_alv       TYPE REF TO zcl_app_alv_table,
+          mo_output    TYPE REF TO zcl_app_output,
           mo_selscreen TYPE REF TO zcl_app_selscreen.
 
     METHODS:
@@ -41,29 +39,8 @@ ENDCLASS.
 
 
 CLASS zcl_app_report IMPLEMENTATION.
-  METHOD extend_output.
-
-  ENDMETHOD.
-
   METHOD create_output.
-    FIELD-SYMBOLS: <output> TYPE ANY TABLE.
-
-
-    ASSIGN mr_output->* TO <output>.
-
-    TRY.
-        mo_alv = zcl_app_alv_table=>factory(
-                   EXPORTING
-                     io_parent = cl_gui_container=>default_screen
-                   CHANGING
-                     ct_table          = <output>
-                 ).
-
-        extend_output( mo_alv ).
-
-        mo_alv->display( ).
-      CATCH zcx_app.
-    ENDTRY.
+    mo_output = NEW #( me ).
   ENDMETHOD.
 
   METHOD init.
@@ -142,16 +119,16 @@ CLASS zcl_app_report IMPLEMENTATION.
 
       on_init( mo_dynpro ).
 
+      IF lv_screen = 2000.
+        create_output( ).
+      ENDIF.
+
       LOOP AT mt_container REFERENCE INTO DATA(lr_container).
         IF lr_container->*->mo_parent IS NOT BOUND.
           lr_container->*->create_parent( ).
           lr_container->*->create_instance( ).
         ENDIF.
       ENDLOOP.
-
-      IF lv_screen = 2000.
-        create_output( ).
-      ENDIF.
     ENDIF.
 
     on_pbo( mo_dynpro ).

@@ -53,7 +53,6 @@ CLASS zcl_app_test_dialog IMPLEMENTATION.
             OR io_dynpro->mc_commands-cancel.
             LEAVE TO SCREEN 0.
         ENDCASE.
-
     ENDCASE.
   ENDMETHOD.
 

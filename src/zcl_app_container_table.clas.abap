@@ -16,12 +16,20 @@ CLASS zcl_app_container_table DEFINITION
 
     METHODS:
       create_instance REDEFINITION,
-      register_events REDEFINITION.
+      register_events REDEFINITION,
+      get_functions
+        RETURNING VALUE(ro_result) TYPE REF TO zcl_app_table_functions,
+      get_columns
+        RETURNING VALUE(ro_result) TYPE REF TO zcl_app_table_columns,
+      get_settings
+        RETURNING VALUE(ro_result) TYPE REF TO zcl_app_table_settings,
+      get_selections
+        RETURNING VALUE(ro_result) TYPE REF TO zcl_app_table_selections.
 
   PROTECTED SECTION.
 
   PRIVATE SECTION.
-    DATA: mo_salv  TYPE REF TO cl_salv_table,
+    DATA: mo_table TYPE REF TO zcl_app_alv_table,
           mr_table TYPE REF TO data.
 
     METHODS:
@@ -29,34 +37,45 @@ CLASS zcl_app_container_table DEFINITION
         IMPORTING
           iv_name TYPE string
           iv_side TYPE i DEFAULT mc_sides-custom,
-      on_added_function FOR EVENT added_function OF cl_salv_events_table
+      on_added_function FOR EVENT on_added_function OF zcl_app_alv_table
         IMPORTING
-          e_salv_function
-          sender,
-      on_link_click FOR EVENT link_click OF cl_salv_events_table
+          iv_function,
+      on_link_click FOR EVENT on_link_click OF zcl_app_alv_table
         IMPORTING
-          column
-          row
-          sender,
-      on_double_click FOR EVENT double_click OF cl_salv_events_table
+          iv_row
+          iv_column,
+      on_double_click FOR EVENT on_double_click OF zcl_app_alv_table
         IMPORTING
-          column
-          row
-          sender,
-      on_after_function FOR EVENT after_salv_function OF cl_salv_events_table
+          iv_row
+          iv_column,
+      on_after_function FOR EVENT on_after_function OF zcl_app_alv_table
         IMPORTING
-          e_salv_function
-          sender,
-      on_before_function FOR EVENT before_salv_function OF cl_salv_events_table
+          iv_function,
+      on_before_function FOR EVENT on_before_function OF zcl_app_alv_table
         IMPORTING
-          e_salv_function
-          sender.
+          iv_function.
 
 ENDCLASS.
 
 
 
 CLASS zcl_app_container_table IMPLEMENTATION.
+  METHOD get_columns.
+    ro_result = mo_table->get_columns( ).
+  ENDMETHOD.
+
+  METHOD get_functions.
+    ro_result = mo_table->get_functions( ).
+  ENDMETHOD.
+
+  METHOD get_selections.
+    ro_result = mo_table->get_selections( ).
+  ENDMETHOD.
+
+  METHOD get_settings.
+*    ro_result = mo_table->get_settings( ).
+  ENDMETHOD.
+
   METHOD constructor.
     super->constructor(
       iv_name = iv_name
@@ -65,19 +84,17 @@ CLASS zcl_app_container_table IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD register_events.
-    DATA(lo_event) = mo_salv->get_event( ).
-
-    SET HANDLER on_added_function FOR lo_event.
-    SET HANDLER on_after_function FOR lo_event.
-    SET HANDLER on_before_function FOR lo_event.
-    SET HANDLER on_double_click FOR lo_event.
-    SET HANDLER on_link_click FOR lo_event.
+    SET HANDLER on_added_function FOR mo_table.
+    SET HANDLER on_after_function FOR mo_table.
+    SET HANDLER on_before_function FOR mo_table.
+    SET HANDLER on_double_click FOR mo_table.
+    SET HANDLER on_link_click FOR mo_table.
   ENDMETHOD.
 
   METHOD on_added_function.
     BREAK developer.
     mo_app->on_table_added_function(
-      iv_function = CONV #( e_salv_function )
+      iv_function = iv_function
       io_table    = me
     ).
   ENDMETHOD.
@@ -85,7 +102,7 @@ CLASS zcl_app_container_table IMPLEMENTATION.
   METHOD on_after_function.
     BREAK developer.
     mo_app->on_table_after_function(
-      iv_function = CONV #( e_salv_function )
+      iv_function = iv_function
       io_table    = me
     ).
   ENDMETHOD.
@@ -93,7 +110,7 @@ CLASS zcl_app_container_table IMPLEMENTATION.
   METHOD on_before_function.
     BREAK developer.
     mo_app->on_table_before_function(
-      iv_function = CONV #( e_salv_function )
+      iv_function = iv_function
       io_table    = me
     ).
   ENDMETHOD.
@@ -101,17 +118,17 @@ CLASS zcl_app_container_table IMPLEMENTATION.
   METHOD on_double_click.
     BREAK developer.
     mo_app->on_table_double_click(
-      iv_row    = row
-      iv_column = CONV #( column )
+      iv_row    = iv_row
+      iv_column = iv_column
       io_table  = me
     ).
   ENDMETHOD.
 
   METHOD on_link_click.
     BREAK developer.
-    mo_app->on_table_double_click(
-      iv_row    = row
-      iv_column = CONV #( column )
+    mo_app->on_table_link_click(
+      iv_row    = iv_row
+      iv_column = iv_column
       io_table  = me
     ).
   ENDMETHOD.
@@ -127,23 +144,21 @@ CLASS zcl_app_container_table IMPLEMENTATION.
 
   METHOD create_instance.
     FIELD-SYMBOLS: <table> TYPE ANY TABLE.
-
+    BREAK developer.
     ASSIGN mr_table->* TO <table>.
 
     TRY.
-        cl_salv_table=>factory(
+        mo_table = zcl_app_alv_table=>factory(
           EXPORTING
-*           list_display   = if_salv_c_bool_sap=>false
-            r_container    = get_parent( )
-*           container_name =
-          IMPORTING
-            r_salv_table   = mo_salv
+            io_parent         = get_parent( )
           CHANGING
-            t_table        = <table>
+            ct_table          = <table>
         ).
 
-        mo_salv->display( ).
-      CATCH cx_salv_msg.
+        mo_app->on_table_extension( me ).
+
+        mo_table->display( ).
+      CATCH zcx_app.
     ENDTRY.
 
     register_events( ).
