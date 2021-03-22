@@ -3,14 +3,13 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>ZCL_APP_OUTPUT</CLSNAME>
+    <CLSNAME>ZCL_APP_HTML_P</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>Report Output</DESCRIPT>
+    <DESCRIPT>HTML Paragraph</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
-    <MSG_ID>ZAPP_MESSAGES</MSG_ID>
    </VSEOCLASS>
   </asx:values>
  </asx:abap>

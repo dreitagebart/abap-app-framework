@@ -128,6 +128,18 @@
      <MSGNR>019</MSGNR>
      <TEXT>Function &amp;1 already exists</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>020</MSGNR>
+     <TEXT>Selection</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>021</MSGNR>
+     <TEXT>show selection</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>

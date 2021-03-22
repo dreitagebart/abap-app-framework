@@ -3,6 +3,7 @@ CLASS zca_app_container DEFINITION
   ABSTRACT
   CREATE PRIVATE
   GLOBAL FRIENDS zca_app
+                 zcl_app_output
                  zcl_app_container_splitter
                  zcl_app_container_document
                  zcl_app_container_bar

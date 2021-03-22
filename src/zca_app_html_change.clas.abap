@@ -1,0 +1,22 @@
+CLASS zca_app_html_change DEFINITION
+  PUBLIC
+  INHERITING FROM zca_app_html
+  CREATE PRIVATE.
+
+  PUBLIC SECTION.
+    METHODS:
+      parse REDEFINITION.
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+
+ENDCLASS.
+
+
+
+CLASS zca_app_html_change IMPLEMENTATION.
+  METHOD parse.
+
+  ENDMETHOD.
+ENDCLASS.

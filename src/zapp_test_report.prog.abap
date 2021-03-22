@@ -10,7 +10,7 @@ INCLUDE zapp_gui_connector.
 DATA go_app TYPE REF TO zcl_app_test_report.
 
 SELECTION-SCREEN BEGIN OF BLOCK sel WITH FRAME TITLE gv_sel.
-SELECT-OPTIONS: s_carrid FOR go_app->ms_selopts-sflight-carrid,
+SELECT-OPTIONS: s_carrid FOR go_app->ms_selopts-sflight-carrid DEFAULT 'LH',
                 s_connid FOR go_app->ms_selopts-sflight-connid,
                 s_pltype FOR go_app->ms_selopts-sflight-planetype.
 SELECTION-SCREEN END OF BLOCK sel.

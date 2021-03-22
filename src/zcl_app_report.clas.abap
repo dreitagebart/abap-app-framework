@@ -31,16 +31,28 @@ CLASS zcl_app_report DEFINITION
           mo_selscreen TYPE REF TO zcl_app_selscreen.
 
     METHODS:
-      call_output_screen,
-      create_output.
+      create_output,
+      handle_default_functions.
 
 ENDCLASS.
 
 
 
 CLASS zcl_app_report IMPLEMENTATION.
+  METHOD handle_default_functions.
+    IF  mo_dynpro->is_selscreen( )
+    AND sy-ucomm = 'ONLI'
+    AND check_selection( ) = abap_true.
+      LEAVE SCREEN.
+    ENDIF.
+  ENDMETHOD.
+
   METHOD create_output.
     mo_output = NEW #( me ).
+
+    CALL FUNCTION 'Z_APP_DISPLAY_OUTPUT'
+      EXPORTING
+        io_app = me.
   ENDMETHOD.
 
   METHOD init.
@@ -51,11 +63,7 @@ CLASS zcl_app_report IMPLEMENTATION.
   METHOD pai.
     mo_selscreen->get_selscreen_data( ).
 
-    IF  mo_dynpro->is_selscreen( )
-    AND sy-ucomm = 'ONLI'
-    AND check_selection( ) = abap_true.
-      LEAVE SCREEN.
-    ENDIF.
+    handle_default_functions( ).
 
     on_pai( mo_dynpro ).
   ENDMETHOD.
@@ -71,12 +79,6 @@ CLASS zcl_app_report IMPLEMENTATION.
       WHEN OTHERS.
         MESSAGE a005 DISPLAY LIKE 'E'.
     ENDCASE.
-  ENDMETHOD.
-
-  METHOD call_output_screen.
-    CALL FUNCTION 'Z_APP_DISPLAY_OUTPUT'
-      EXPORTING
-        io_app = me.
   ENDMETHOD.
 
   METHOD set_selscreen.
@@ -119,10 +121,6 @@ CLASS zcl_app_report IMPLEMENTATION.
 
       on_init( mo_dynpro ).
 
-      IF lv_screen = 2000.
-        create_output( ).
-      ENDIF.
-
       LOOP AT mt_container REFERENCE INTO DATA(lr_container).
         IF lr_container->*->mo_parent IS NOT BOUND.
           lr_container->*->create_parent( ).
@@ -139,6 +137,6 @@ CLASS zcl_app_report IMPLEMENTATION.
 
   METHOD start_of_selection.
     selection_get_data( ).
-    call_output_screen( ).
+    create_output( ).
   ENDMETHOD.
 ENDCLASS.

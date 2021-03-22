@@ -5,6 +5,10 @@ CLASS zcl_app_container_table DEFINITION
   CREATE PRIVATE.
 
   PUBLIC SECTION.
+    EVENTS:
+      on_default_function
+        EXPORTING VALUE(iv_function) TYPE string.
+
     CLASS-METHODS:
       create
         IMPORTING
@@ -17,6 +21,10 @@ CLASS zcl_app_container_table DEFINITION
     METHODS:
       create_instance REDEFINITION,
       register_events REDEFINITION,
+      refresh
+        IMPORTING
+          is_stable TYPE lvc_s_stbl DEFAULT zcl_app_alv_table=>mc_stable
+          iv_mode   TYPE salv_de_constant DEFAULT zcl_app_alv_table=>mc_refresh_modes-soft,
       get_functions
         RETURNING VALUE(ro_result) TYPE REF TO zcl_app_table_functions,
       get_columns
@@ -37,9 +45,17 @@ CLASS zcl_app_container_table DEFINITION
         IMPORTING
           iv_name TYPE string
           iv_side TYPE i DEFAULT mc_sides-custom,
+      handle_default_functions
+        IMPORTING
+                  iv_before_or_after TYPE abap_bool
+                  iv_function        TYPE string
+        RETURNING VALUE(rv_result)   TYPE abap_bool,
       on_added_function FOR EVENT on_added_function OF zcl_app_alv_table
         IMPORTING
           iv_function,
+      on_right_click FOR EVENT on_right_click OF zcl_app_alv_table
+        IMPORTING
+          io_context,
       on_link_click FOR EVENT on_link_click OF zcl_app_alv_table
         IMPORTING
           iv_row
@@ -60,6 +76,31 @@ ENDCLASS.
 
 
 CLASS zcl_app_container_table IMPLEMENTATION.
+  METHOD on_right_click.
+
+  ENDMETHOD.
+
+  METHOD handle_default_functions.
+    CASE iv_function.
+      WHEN zcl_app_output=>mc_functions-output-selection.
+        DATA(lv_skip) = abap_true.
+
+        IF iv_before_or_after = abap_false.
+          RAISE EVENT on_default_function
+            EXPORTING
+              iv_function = iv_function.
+        ENDIF.
+      WHEN OTHERS.
+        "do nothing
+    ENDCASE.
+
+    rv_result = lv_skip.
+  ENDMETHOD.
+
+  METHOD refresh.
+    mo_table->refresh( ).
+  ENDMETHOD.
+
   METHOD get_columns.
     ro_result = mo_table->get_columns( ).
   ENDMETHOD.
@@ -89,10 +130,17 @@ CLASS zcl_app_container_table IMPLEMENTATION.
     SET HANDLER on_before_function FOR mo_table.
     SET HANDLER on_double_click FOR mo_table.
     SET HANDLER on_link_click FOR mo_table.
+    SET HANDLER on_right_click FOR mo_table.
   ENDMETHOD.
 
   METHOD on_added_function.
-    BREAK developer.
+    IF handle_default_functions(
+         iv_before_or_after = abap_false
+         iv_function        = iv_function
+       ) = abap_true.
+      RETURN.
+    ENDIF.
+
     mo_app->on_table_added_function(
       iv_function = iv_function
       io_table    = me
@@ -100,7 +148,13 @@ CLASS zcl_app_container_table IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_after_function.
-    BREAK developer.
+    IF handle_default_functions(
+         iv_before_or_after = abap_true
+         iv_function        = iv_function
+       ) = abap_true.
+      RETURN.
+    ENDIF.
+
     mo_app->on_table_after_function(
       iv_function = iv_function
       io_table    = me
@@ -108,7 +162,13 @@ CLASS zcl_app_container_table IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_before_function.
-    BREAK developer.
+    IF handle_default_functions(
+         iv_before_or_after = abap_true
+         iv_function        = iv_function
+       ) = abap_true.
+      RETURN.
+    ENDIF.
+
     mo_app->on_table_before_function(
       iv_function = iv_function
       io_table    = me
@@ -116,7 +176,6 @@ CLASS zcl_app_container_table IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_double_click.
-    BREAK developer.
     mo_app->on_table_double_click(
       iv_row    = iv_row
       iv_column = iv_column
@@ -125,7 +184,6 @@ CLASS zcl_app_container_table IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_link_click.
-    BREAK developer.
     mo_app->on_table_link_click(
       iv_row    = iv_row
       iv_column = iv_column
@@ -144,7 +202,7 @@ CLASS zcl_app_container_table IMPLEMENTATION.
 
   METHOD create_instance.
     FIELD-SYMBOLS: <table> TYPE ANY TABLE.
-    BREAK developer.
+
     ASSIGN mr_table->* TO <table>.
 
     TRY.

@@ -29,6 +29,10 @@ CLASS zcl_app_container_splitter DEFINITION
         RETURNING VALUE(ro_result) TYPE REF TO zca_app_container
         RAISING   zcx_app,
       register_events REDEFINITION,
+      get_size
+        IMPORTING
+                  iv_name          TYPE string
+        RETURNING VALUE(rv_result) TYPE i,
       set_size
         IMPORTING
           iv_name TYPE string
@@ -61,6 +65,47 @@ ENDCLASS.
 
 
 CLASS zcl_app_container_splitter IMPLEMENTATION.
+  METHOD get_size.
+    IF mo_splitter IS NOT BOUND.
+      TRY.
+          DATA(lr_size) = REF #( mt_sizes[ name = iv_name ] ).
+
+          rv_result = lr_size->size.
+        CATCH cx_sy_itab_line_not_found.
+          rv_result = 0.
+      ENDTRY.
+
+      RETURN.
+    ENDIF.
+
+    LOOP AT mt_children REFERENCE INTO DATA(lr_child).
+      DATA(lv_index) = sy-tabix.
+
+      IF lr_child->*->mv_name = iv_name.
+        CASE mv_mode.
+          WHEN mc_split_modes-horizontal.
+            mo_splitter->get_column_width(
+              EXPORTING
+                id     = lv_index
+              IMPORTING
+                result = rv_result
+            ).
+          WHEN mc_split_modes-vertical.
+            mo_splitter->get_row_height(
+              EXPORTING
+                id     = lv_index
+              IMPORTING
+                result = rv_result
+            ).
+        ENDCASE.
+
+        cl_gui_cfw=>flush( ).
+
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
   METHOD set_size.
     IF mo_splitter IS NOT BOUND.
       TRY.
@@ -71,28 +116,30 @@ CLASS zcl_app_container_splitter IMPLEMENTATION.
           APPEND VALUE ts_size( name = iv_name
                                 size = iv_size ) TO mt_sizes.
       ENDTRY.
-    ELSE.
-      LOOP AT mt_children REFERENCE INTO DATA(lr_child).
-        DATA(lv_index) = sy-tabix.
 
-        IF lr_child->*->mv_name = iv_name.
-          CASE mv_mode.
-            WHEN mc_split_modes-horizontal.
-              mo_splitter->set_column_width(
-                id    = lv_index
-                width = iv_size
-              ).
-            WHEN mc_split_modes-vertical.
-              mo_splitter->set_row_height(
-                id                = lv_index
-                height            = iv_size
-              ).
-          ENDCASE.
-
-          EXIT.
-        ENDIF.
-      ENDLOOP.
+      RETURN.
     ENDIF.
+
+    LOOP AT mt_children REFERENCE INTO DATA(lr_child).
+      DATA(lv_index) = sy-tabix.
+
+      IF lr_child->*->mv_name = iv_name.
+        CASE mv_mode.
+          WHEN mc_split_modes-horizontal.
+            mo_splitter->set_column_width(
+              id    = lv_index
+              width = iv_size
+            ).
+          WHEN mc_split_modes-vertical.
+            mo_splitter->set_row_height(
+              id                = lv_index
+              height            = iv_size
+            ).
+        ENDCASE.
+
+        EXIT.
+      ENDIF.
+    ENDLOOP.
   ENDMETHOD.
 
   METHOD get_container.

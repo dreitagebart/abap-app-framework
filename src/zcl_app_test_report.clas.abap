@@ -53,6 +53,7 @@ CLASS zcl_app_test_report DEFINITION
 
     METHODS:
       check_selection REDEFINITION,
+      on_table_added_function REDEFINITION,
       on_table_extension REDEFINITION,
       on_init REDEFINITION,
       on_pai REDEFINITION,
@@ -74,6 +75,8 @@ ENDCLASS.
 
 
 CLASS zcl_app_test_report IMPLEMENTATION.
+
+
   METHOD check_selection.
     IF ms_selscreen-s_carrid[] IS INITIAL.
       MESSAGE 'Airline should not be empty' TYPE 'S' DISPLAY LIKE 'E'.
@@ -82,34 +85,6 @@ CLASS zcl_app_test_report IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
-  METHOD on_table_extension.
-    BREAK developer.
-    CASE io_table->get_name( ).
-      WHEN mc_container-output.
-        DATA(lo_functions) = io_table->get_functions( ).
-
-        TRY.
-            lo_functions->add_function(
-              iv_name      = mc_functions-output-test
-              iv_icon      = icon_okay
-              iv_text      = 'Test'
-              iv_tooltip    = ''
-              iv_position  = if_salv_c_function_position=>right_of_salv_functions
-            ).
-          CATCH zcx_app.
-        ENDTRY.
-
-        LOOP AT io_table->get_columns( )->get( ) REFERENCE INTO DATA(lr_column).
-          CASE lr_column->name.
-            WHEN mc_columns-output-price.
-              lr_column->column->set_editable( ).
-              lr_column->column->set_optimized( ).
-            WHEN OTHERS.
-              lr_column->column->set_optimized( ).
-          ENDCASE.
-        ENDLOOP.
-    ENDCASE.
-  ENDMETHOD.
 
   METHOD on_init.
     CASE io_dynpro->get_screen( ).
@@ -151,6 +126,7 @@ CLASS zcl_app_test_report IMPLEMENTATION.
     ENDCASE.
   ENDMETHOD.
 
+
   METHOD on_pai.
     CASE io_dynpro->get_screen( ).
       WHEN 1000.
@@ -165,6 +141,7 @@ CLASS zcl_app_test_report IMPLEMENTATION.
     ENDCASE.
   ENDMETHOD.
 
+
   METHOD on_pbo.
     CASE io_dynpro->get_screen( ).
       WHEN 1000.
@@ -174,6 +151,49 @@ CLASS zcl_app_test_report IMPLEMENTATION.
     ENDCASE.
   ENDMETHOD.
 
+
+  METHOD on_table_added_function.
+    CASE io_table->get_name( ).
+      WHEN mc_container-output.
+        BREAK developer.
+        io_table->get_functions( )->set_group_sort( ).
+
+        io_table->refresh( ).
+    ENDCASE.
+  ENDMETHOD.
+
+
+  METHOD on_table_extension.
+    CASE io_table->get_name( ).
+      WHEN mc_container-output.
+        DATA(lo_functions) = io_table->get_functions( ).
+
+        lo_functions->set_default( ).
+
+        TRY.
+            lo_functions->add_function(
+              iv_name      = mc_functions-output-test
+              iv_icon      = icon_okay
+              iv_text      = 'Test'
+              iv_tooltip    = ''
+              iv_position  = if_salv_c_function_position=>right_of_salv_functions
+            ).
+          CATCH zcx_app.
+        ENDTRY.
+
+        LOOP AT io_table->get_columns( )->get( ) REFERENCE INTO DATA(lr_column).
+          CASE lr_column->name.
+            WHEN mc_columns-output-price.
+              lr_column->column->set_editable( ).
+              lr_column->column->set_optimized( ).
+            WHEN OTHERS.
+              lr_column->column->set_optimized( ).
+          ENDCASE.
+        ENDLOOP.
+    ENDCASE.
+  ENDMETHOD.
+
+
   METHOD selection_get_data.
     SELECT * FROM sflight INTO TABLE @mt_output
       WHERE carrid    IN @ms_selscreen-s_carrid
@@ -181,12 +201,14 @@ CLASS zcl_app_test_report IMPLEMENTATION.
         AND planetype IN @ms_selscreen-s_pltype.
   ENDMETHOD.
 
+
   METHOD setup_output.
     set_output(
       CHANGING
         ct_data = mt_output
     ).
   ENDMETHOD.
+
 
   METHOD setup_selscreen.
     set_selscreen(

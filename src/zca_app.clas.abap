@@ -33,6 +33,9 @@ CLASS zca_app DEFINITION
           iv_y      TYPE i DEFAULT 5,
       get_dynpro
         RETURNING VALUE(ro_result) TYPE REF TO zcl_app_dynpro,
+      on_table_right_click
+        IMPORTING
+          io_context TYPE REF TO cl_ctmenu,
       on_table_extension
         IMPORTING
           io_table TYPE REF TO zcl_app_container_table,
@@ -423,6 +426,11 @@ CLASS zca_app IMPLEMENTATION.
 
 
   METHOD on_table_double_click.
+
+  ENDMETHOD.
+
+
+  METHOD on_table_right_click.
 
   ENDMETHOD.
 
