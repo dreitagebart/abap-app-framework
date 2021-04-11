@@ -140,6 +140,18 @@
      <MSGNR>021</MSGNR>
      <TEXT>show selection</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>022</MSGNR>
+     <TEXT>Could not read value from internal table</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZAPP_MESSAGES</ARBGB>
+     <MSGNR>023</MSGNR>
+     <TEXT>Search help request has been cancelled</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>

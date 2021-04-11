@@ -6,6 +6,12 @@ CLASS zcl_app_dynpro DEFINITION
                  zcl_app_dialog.
 
   PUBLIC SECTION.
+    TYPES: BEGIN OF ts_f4_value,
+             value TYPE string,
+           END OF ts_f4_value,
+
+           tt_f4_value TYPE TABLE OF ts_f4_value WITH KEY value.
+
     CONSTANTS: BEGIN OF mc_commands,
                  enter         TYPE syucomm VALUE 'ENTER',
                  back          TYPE syucomm VALUE 'BACK',
@@ -59,6 +65,26 @@ CLASS zcl_app_dynpro DEFINITION
         RETURNING VALUE(rv_result) TYPE abap_bool,
       is_modal
         RETURNING VALUE(rv_result) TYPE abap_bool,
+      get_f4_help_multi
+        IMPORTING
+                  iv_field         TYPE string
+                  iv_column        TYPE string
+                  iv_title         TYPE string
+                  it_table         TYPE STANDARD TABLE
+        RETURNING VALUE(rt_result) TYPE tt_f4_value
+        RAISING   zcx_app,
+      get_f4_help
+        IMPORTING
+                  iv_field         TYPE string
+                  iv_column        TYPE string
+                  iv_title         TYPE string
+                  it_table         TYPE STANDARD TABLE
+        RETURNING VALUE(rv_result) TYPE string
+        RAISING   zcx_app,
+      get_field_value
+        IMPORTING
+                  iv_field         TYPE string
+        RETURNING VALUE(rv_result) TYPE string,
       get_screen
         RETURNING VALUE(rv_result) TYPE sydynnr,
       set_title
@@ -129,8 +155,7 @@ CLASS zcl_app_dynpro IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD constructor.
-    DATA: lt_fields      TYPE TABLE OF d021s,
-          lt_screen_flow TYPE TABLE OF d022s,
+    DATA: lt_screen_flow TYPE TABLE OF d022s,
           ls_header      TYPE d020s.
 
     mv_screen = iv_screen.
@@ -189,12 +214,161 @@ CLASS zcl_app_dynpro IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD show_gui_status.
-    CHECK mv_is_selscreen = abap_false.
-
-    mo_gui->show_gui_status( mv_is_modal ).
+    IF mv_is_selscreen = abap_false.
+      mo_gui->show_gui_status( mv_is_modal ).
+    ENDIF.
   ENDMETHOD.
 
   METHOD show_title.
     mo_gui->show_title( mv_title ).
+  ENDMETHOD.
+
+  METHOD get_f4_help_multi.
+    DATA: lv_reset  TYPE abap_bool,
+          lt_return TYPE TABLE OF ddshretval.
+
+    CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+      EXPORTING
+*       ddic_structure  = space
+        retfield        = CONV fieldname( iv_column )
+*       pvalkey         = space
+        dynpprog        = mv_program
+        dynpnr          = mv_screen
+        dynprofield     = CONV dynfnam( iv_field )
+*       stepl           = 0
+        window_title    = CONV text100( iv_title )
+*       value           = space
+        value_org       = 'S'
+        multiple_choice = abap_true
+*       display         = space
+*       callback_program = space
+*       callback_form   = space
+*       callback_method =
+*       mark_tab        =
+      IMPORTING
+        user_reset      = lv_reset
+      TABLES
+        value_tab       = it_table
+*       field_tab       =
+        return_tab      = lt_return
+*       dynpfld_mapping =
+      EXCEPTIONS
+        parameter_error = 1
+        no_values_found = 2
+        OTHERS          = 3.
+
+    IF lv_reset = abap_true.
+      RAISE EXCEPTION TYPE zcx_app
+        MESSAGE e023.
+    ENDIF.
+
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE zcx_app
+        EXPORTING
+          textid = VALUE #( msgid = sy-msgid
+                            msgno = sy-msgno ).
+    ENDIF.
+
+    LOOP AT lt_return REFERENCE INTO DATA(lr_return).
+      APPEND VALUE #( value = lr_return->fieldval ) TO rt_result.
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD get_f4_help.
+    DATA: lv_reset  TYPE abap_bool,
+          lt_return TYPE TABLE OF ddshretval.
+
+    CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+      EXPORTING
+*       ddic_structure  = space
+        retfield        = CONV fieldname( iv_column )
+*       pvalkey         = space
+        dynpprog        = mv_program
+        dynpnr          = mv_screen
+        dynprofield     = CONV dynfnam( iv_field )
+*       stepl           = 0
+        window_title    = CONV text100( iv_title )
+*       value           = space
+        value_org       = 'S'
+        multiple_choice = abap_false
+*       display         = space
+*       callback_program = space
+*       callback_form   = space
+*       callback_method =
+*       mark_tab        =
+      IMPORTING
+        user_reset      = lv_reset
+      TABLES
+        value_tab       = it_table
+*       field_tab       =
+        return_tab      = lt_return
+*       dynpfld_mapping =
+      EXCEPTIONS
+        parameter_error = 1
+        no_values_found = 2
+        OTHERS          = 3.
+
+    IF lv_reset = abap_true.
+      RAISE EXCEPTION TYPE zcx_app
+        MESSAGE e023.
+    ENDIF.
+
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE zcx_app
+        MESSAGE ID sy-msgid
+        TYPE 'E'
+        NUMBER sy-msgno
+        WITH
+        sy-msgv1
+        sy-msgv2
+        sy-msgv3
+        sy-msgv4.
+    ENDIF.
+
+    TRY.
+        rv_result = lt_return[ 1 ]-fieldval.
+      CATCH cx_sy_itab_line_not_found.
+        RAISE EXCEPTION TYPE zcx_app
+          MESSAGE e022.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD get_field_value.
+    DATA(lt_fields) = VALUE dynpread_tabtype( ( fieldname = iv_field ) ).
+
+    CALL FUNCTION 'DYNP_VALUES_READ'
+      EXPORTING
+        dyname               = mv_program
+        dynumb               = mv_screen
+        translate_to_upper   = abap_true
+*       request              = space
+*       perform_conversion_exits       = space
+*       perform_input_conversion       = space
+*       determine_loop_index = space
+*       start_search_in_current_screen = space
+*       start_search_in_main_screen    = space
+*       start_search_in_stacked_screen = space
+*       start_search_on_scr_stackpos   = space
+*       search_own_subscreens_first    = space
+*       searchpath_of_subscreen_areas  = space
+      TABLES
+        dynpfields           = lt_fields
+      EXCEPTIONS
+        invalid_abapworkarea = 1
+        invalid_dynprofield  = 2
+        invalid_dynproname   = 3
+        invalid_dynpronummer = 4
+        invalid_request      = 5
+        no_fielddescription  = 6
+        invalid_parameter    = 7
+        undefind_error       = 8
+        double_conversion    = 9
+        stepl_not_found      = 10
+        OTHERS               = 11.
+
+    TRY.
+        rv_result = lt_fields[ fieldname = iv_field ]-fieldvalue.
+      CATCH cx_sy_itab_line_not_found.
+    ENDTRY.
   ENDMETHOD.
 ENDCLASS.

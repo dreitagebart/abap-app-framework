@@ -10,6 +10,10 @@ CLASS zcl_app_report DEFINITION
       init REDEFINITION,
       pai REDEFINITION,
       pbo REDEFINITION,
+      poh REDEFINITION,
+      pov REDEFINITION,
+      on_pov REDEFINITION,
+      on_poh REDEFINITION,
       check_selection ABSTRACT
         RETURNING VALUE(rv_skip) TYPE abap_bool,
       set_selscreen
@@ -39,6 +43,14 @@ ENDCLASS.
 
 
 CLASS zcl_app_report IMPLEMENTATION.
+  METHOD on_poh.
+
+  ENDMETHOD.
+
+  METHOD on_pov.
+
+  ENDMETHOD.
+
   METHOD handle_default_functions.
     IF  mo_dynpro->is_selscreen( )
     AND sy-ucomm = 'ONLI'
@@ -56,6 +68,7 @@ CLASS zcl_app_report IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD init.
+    debug( ).
     setup_selscreen( ).
     setup_output( ).
   ENDMETHOD.
@@ -94,6 +107,42 @@ CLASS zcl_app_report IMPLEMENTATION.
       CATCH zcx_app INTO DATA(lx_error).
         MESSAGE lx_error.
     ENDTRY.
+  ENDMETHOD.
+
+  METHOD poh.
+    DATA(lv_screen) = sy-dynnr.
+
+    LOOP AT mt_dynpro_stack REFERENCE INTO DATA(lr_dynpro).
+      IF lv_screen = lr_dynpro->*->mv_screen.
+        DATA(lv_stack) = abap_true.
+
+        mo_dynpro = lr_dynpro->*.
+
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+
+    IF lv_stack = abap_true.
+      on_poh( mo_dynpro ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD pov.
+    DATA(lv_screen) = sy-dynnr.
+
+    LOOP AT mt_dynpro_stack REFERENCE INTO DATA(lr_dynpro).
+      IF lv_screen = lr_dynpro->*->mv_screen.
+        DATA(lv_stack) = abap_true.
+
+        mo_dynpro = lr_dynpro->*.
+
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+
+    IF lv_stack = abap_true.
+      on_pov( mo_dynpro ).
+    ENDIF.
   ENDMETHOD.
 
   METHOD pbo.
@@ -136,6 +185,7 @@ CLASS zcl_app_report IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD start_of_selection.
+    debug( ).
     selection_get_data( ).
     create_output( ).
   ENDMETHOD.

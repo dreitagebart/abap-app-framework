@@ -19,12 +19,29 @@ CLASS zcl_app_container_bar DEFINITION
         IMPORTING
           iv_title     TYPE string
           iv_icon      TYPE icon_d
+          iv_close     TYPE abap_bool DEFAULT abap_false
           io_container TYPE REF TO zca_app_container,
+      get_active
+        RETURNING VALUE(rv_result) TYPE string,
       get_container
         IMPORTING
                   iv_name          TYPE string
         RETURNING VALUE(ro_result) TYPE REF TO zca_app_container
-        RAISING   zcx_app.
+        RAISING   zcx_app,
+      remove
+        IMPORTING
+          iv_name TYPE string,
+      set_active
+        IMPORTING
+          iv_name TYPE string,
+      set_close
+        IMPORTING
+          iv_name  TYPE string
+          iv_close TYPE abap_bool DEFAULT abap_true,
+      set_title
+        IMPORTING
+          iv_name  TYPE string
+          iv_title TYPE string.
 
   PROTECTED SECTION.
 
@@ -68,22 +85,88 @@ CLASS zcl_app_container_bar IMPLEMENTATION.
     SET HANDLER on_empty FOR mo_bar.
   ENDMETHOD.
 
+  METHOD set_title.
+    LOOP AT mt_captions REFERENCE INTO DATA(lr_caption) WHERE name = iv_name.
+      DATA(lv_id) = sy-tabix.
+
+      lr_caption->caption = iv_title.
+
+      mo_bar->set_cell_caption(
+        id                  = lv_id
+        caption             = lr_caption->*
+      ).
+    ENDLOOP.
+  ENDMETHOD.
+
   METHOD add_container.
-    APPEND VALUE sbptcaptn(
-      caption      = iv_title
-      icon         = iv_icon
-      no_close     = abap_false
-      name         = io_container->get_name( )
-      invisible    = abap_false
-      pre_inst     = abap_false
-      reuse_cnt_of = ''
-    ) TO mt_captions.
+    APPEND INITIAL LINE TO mt_captions REFERENCE INTO DATA(lr_caption).
+    lr_caption->caption      = iv_title.
+    lr_caption->icon         = iv_icon.
+    lr_caption->no_close     = SWITCH #( iv_close WHEN abap_false THEN abap_true ELSE abap_false ).
+    lr_caption->name         = io_container->get_name( ).
+    lr_caption->invisible    = abap_false.
+    lr_caption->pre_inst     = abap_false.
+    lr_caption->reuse_cnt_of = ''.
 
     APPEND io_container TO mt_children.
+
+    IF mo_bar IS BOUND.
+      mo_bar->add_cell( lr_caption->* ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD set_active.
+    LOOP AT mt_captions REFERENCE INTO DATA(lr_caption) WHERE name = iv_name.
+      DATA(lv_id) = sy-tabix.
+
+      mo_bar->set_active( lv_id ).
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD set_close.
+    LOOP AT mt_captions REFERENCE INTO DATA(lr_caption) WHERE name = iv_name.
+      DATA(lv_id) = sy-tabix.
+
+      lr_caption->no_close = SWITCH #( iv_close WHEN abap_true THEN abap_false ELSE abap_true ).
+
+      mo_bar->set_cell_caption(
+        id                  = lv_id
+        caption             = lr_caption->*
+      ).
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD remove.
+    LOOP AT mt_captions REFERENCE INTO DATA(lr_caption) WHERE name = iv_name.
+      DATA(lv_id) = sy-tabix.
+
+      mo_bar->remove_cell( lv_id ).
+    ENDLOOP.
+
+    TRY.
+        DATA(lo_container) = mt_children[ lv_id ].
+        DATA(lo_parent) = lo_container->get_parent( ).
+        lo_parent->free( ).
+        CLEAR lo_parent.
+        CLEAR lo_container.
+      CATCH cx_sy_itab_line_not_found.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD get_active.
+    mo_bar->get_active(
+      IMPORTING
+        id = DATA(lv_id)
+    ).
+
+    TRY.
+        rv_result = mt_children[ lv_id ]->get_name( ).
+      CATCH cx_sy_itab_line_not_found.
+    ENDTRY.
   ENDMETHOD.
 
   METHOD on_click.
-    BREAK developer.
+    mo_app->debug( ).
     mo_app->on_bar_click(
       iv_id        = id
       io_container = container
@@ -92,7 +175,7 @@ CLASS zcl_app_container_bar IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_close.
-    BREAK developer.
+    mo_app->debug( ).
     mo_app->on_bar_close(
       iv_id  = id
       io_bar = me
@@ -100,7 +183,7 @@ CLASS zcl_app_container_bar IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_empty.
-    BREAK developer.
+    mo_app->debug( ).
     mo_app->on_bar_empty( me ).
   ENDMETHOD.
 

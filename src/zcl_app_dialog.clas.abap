@@ -8,7 +8,11 @@ CLASS zcl_app_dialog DEFINITION
     METHODS:
       init REDEFINITION,
       pai REDEFINITION,
-      pbo REDEFINITION.
+      on_poh REDEFINITION,
+      on_pov REDEFINITION,
+      pbo REDEFINITION,
+      poh REDEFINITION,
+      pov REDEFINITION.
 
   PROTECTED SECTION.
 
@@ -21,6 +25,50 @@ ENDCLASS.
 CLASS zcl_app_dialog IMPLEMENTATION.
   METHOD init.
 
+  ENDMETHOD.
+
+  METHOD on_poh.
+
+  ENDMETHOD.
+
+  METHOD on_pov.
+
+  ENDMETHOD.
+
+  METHOD pov.
+    DATA(lv_screen) = sy-dynnr.
+
+    LOOP AT mt_dynpro_stack REFERENCE INTO DATA(lr_dynpro).
+      IF lv_screen = lr_dynpro->*->mv_screen.
+        DATA(lv_stack) = abap_true.
+
+        mo_dynpro = lr_dynpro->*.
+
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+
+    IF lv_stack = abap_true.
+      on_pov( mo_dynpro ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD poh.
+    DATA(lv_screen) = sy-dynnr.
+
+    LOOP AT mt_dynpro_stack REFERENCE INTO DATA(lr_dynpro).
+      IF lv_screen = lr_dynpro->*->mv_screen.
+        DATA(lv_stack) = abap_true.
+
+        mo_dynpro = lr_dynpro->*.
+
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+
+    IF lv_stack = abap_true.
+      on_poh( mo_dynpro ).
+    ENDIF.
   ENDMETHOD.
 
   METHOD pai.

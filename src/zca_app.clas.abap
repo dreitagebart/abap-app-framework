@@ -31,6 +31,7 @@ CLASS zca_app DEFINITION
 *          iv_center TYPE abap_bool DEFAULT abap_true
           iv_x      TYPE i DEFAULT 26
           iv_y      TYPE i DEFAULT 5,
+      debug,
       get_dynpro
         RETURNING VALUE(ro_result) TYPE REF TO zcl_app_dynpro,
       on_table_right_click
@@ -142,9 +143,17 @@ CLASS zca_app DEFINITION
       on_init ABSTRACT
         IMPORTING
           io_dynpro TYPE REF TO zcl_app_dynpro,
+      on_poh ABSTRACT
+        IMPORTING
+          io_dynpro TYPE REF TO zcl_app_dynpro,
+      on_pov ABSTRACT
+        IMPORTING
+          io_dynpro TYPE REF TO zcl_app_dynpro,
       init ABSTRACT,
       pai ABSTRACT,
-      pbo ABSTRACT.
+      pbo ABSTRACT,
+      poh ABSTRACT,
+      pov ABSTRACT.
 
   PROTECTED SECTION.
     DATA: mo_dynpro       TYPE REF TO zcl_app_dynpro,
@@ -177,6 +186,10 @@ ENDCLASS.
 
 
 CLASS zca_app IMPLEMENTATION.
+  METHOD debug.
+    BREAK-POINT ID zapp_debug.
+  ENDMETHOD.
+
   METHOD add_container.
     APPEND io_container TO mt_container.
   ENDMETHOD.

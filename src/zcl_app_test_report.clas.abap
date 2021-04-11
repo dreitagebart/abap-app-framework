@@ -55,6 +55,7 @@ CLASS zcl_app_test_report DEFINITION
       check_selection REDEFINITION,
       on_table_added_function REDEFINITION,
       on_table_extension REDEFINITION,
+      on_pov REDEFINITION,
       on_init REDEFINITION,
       on_pai REDEFINITION,
       on_pbo REDEFINITION,
@@ -75,7 +76,34 @@ ENDCLASS.
 
 
 CLASS zcl_app_test_report IMPLEMENTATION.
+  METHOD on_pov.
+    BREAK developer.
+    DATA(lv_carrid) = io_dynpro->get_field_value( 'S_CARRID-LOW' ).
 
+    SELECT carrid,
+           carrname,
+           currcode,
+           url FROM scarr
+      INTO TABLE @DATA(lt_scarr) where carrid in ( @lv_carrid ).
+
+    TRY.
+        io_dynpro->get_f4_help(
+          EXPORTING
+            iv_field  = 'S_CARRID'
+            iv_column = 'CARRID'
+            iv_title  = 'Select carrier'
+            it_table  = lt_scarr
+        ).
+      CATCH zcx_app INTO DATA(lx_error).
+        MESSAGE lx_error->get_text( ) TYPE 'S' DISPLAY LIKE 'E'.
+        RETURN.
+    ENDTRY.
+
+    IF ms_selscreen-s_carrid[] IS INITIAL.
+      MESSAGE 'Please insert an airline' TYPE 'S' DISPLAY LIKE 'E'.
+      RETURN.
+    ENDIF.
+  ENDMETHOD.
 
   METHOD check_selection.
     IF ms_selscreen-s_carrid[] IS INITIAL.

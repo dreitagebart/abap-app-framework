@@ -134,6 +134,7 @@ CLASS zcl_app_container_table IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_added_function.
+    mo_app->debug( ).
     IF handle_default_functions(
          iv_before_or_after = abap_false
          iv_function        = iv_function
@@ -176,6 +177,7 @@ CLASS zcl_app_container_table IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_double_click.
+    mo_app->debug( ).
     mo_app->on_table_double_click(
       iv_row    = iv_row
       iv_column = iv_column
@@ -184,6 +186,7 @@ CLASS zcl_app_container_table IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_link_click.
+    mo_app->debug( ).
     mo_app->on_table_link_click(
       iv_row    = iv_row
       iv_column = iv_column
